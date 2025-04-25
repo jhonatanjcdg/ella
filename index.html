@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Para mi duita</title>
+  <title>Para mi compañera de Mobile Legends</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     /* Animación de desvanecimiento para imágenes */
@@ -31,25 +31,116 @@
     body {
       background: linear-gradient(135deg, #f9a8d4, #f3e7e9);
     }
+
+    /* Estilos para el juego de memoria */
+    .memory-game {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr); /* 4 columnas */
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .memory-card {
+      width: 80px; /* Ajustado para 4 columnas */
+      height: 80px;
+      background-color: #fff;
+      border: 2px solid #ffd700;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 0;
+      transition: transform 0.3s ease;
+    }
+
+    .memory-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .memory-card.flipped img {
+      display: block;
+    }
+
+    .memory-card.matched {
+      border-color: #4caf50;
+    }
+
+    .memory-card.flipped {
+      transform: rotateY(180deg);
+    }
+
+    /* Estilos para el rompecabezas deslizante */
+    .puzzle-container {
+      width: 300px;
+      height: 300px;
+      position: relative;
+      margin: 20px auto;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .puzzle-tile {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      background-size: 300px 300px;
+      border: 1px solid #ffd700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .puzzle-tile.correct {
+      border: 2px solid #4caf50;
+    }
+
+    .puzzle-tile.incorrect {
+      border: 2px solid #ff4444;
+    }
+
+    .puzzle-tile.empty {
+      background: none;
+      border: none;
+      cursor: default;
+    }
+
+    .puzzle-tile.complete {
+      border: none;
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center text-center p-4">
   <div class="max-w-md bg-white rounded-lg shadow-lg p-6">
-    <h1 class="text-3xl font-bold text-pink-600 mb-4 fade-in">¡Para mi persona favorita!</h1>
+    <h1 class="text-3xl font-bold text-pink-600 mb-4 fade-in">¡Para mi duita!</h1>
     <p class="text-gray-700 mb-6 fade-in">
-      Cada momento que compartimos juntos es como un pequeño tesoro. Tus risas y nuestra química hacen que todo sea mágico. 🥰
+      Cada momento que compartimos juntos es como un pequeño tesoro. Tus risas y nuestra química hacen que todo sea mágico 🥰
     </p>
 
-    <!-- Imagen de Mobile Legends (usando una imagen genérica del juego) -->
+    <!-- Imagen de Mobile Legends -->
     <img src="./a.jpg" alt="Mobile Legends Heroes" class="rounded-lg mb-6 fade-in w-full">
 
     <!-- Mensaje con animación de corazón -->
     <p class="text-pink-500 text-lg mb-6 fade-in">
-      La MVP de nuestros momentos. <span class="heart inline-block">💖</span>
+      Siempre serás mi MPV <span class="heart inline-block">💖</span>
     </p>
 
-    <!-- Otra imagen relacionada con el juego -->
-    <img src="./b.jpg" alt="Mobile Legends Battle" class="rounded-lg mb-6 fade-in w-full">
+    <!-- Juego de memoria -->
+    <h2 class="text-2xl font-bold text-pink-600 mb-4 fade-in">¡Encuentra los pares!</h2>
+    <p class="text-gray-700 mb-4 fade-in">Encuentra los pares de héroes de Mobile Legends. ¡Tienes 12 intentos!</p>
+    <p class="text-gray-700 mb-4 fade-in">Si no lo logras te regalo el VIP, jsjsjs</p>
+    <div class="memory-game" id="memory-game"></div>
+    <p id="game-message" class="text-pink-500 text-lg mb-6 fade-in hidden"></p>
+
+    <!-- Juego de rompecabezas deslizante -->
+    <h2 class="text-2xl font-bold text-pink-600 mb-4 fade-in">¡Rompecabezas de MLBB!</h2>
+    <p class="text-gray-700 mb-4 fade-in">Arma la imagen deslizando las piezas. ¡Diviértete!</p>
+    <button id="start-puzzle" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300 mb-4 fade-in">Iniciar Rompecabezas</button>
+    <div class="puzzle-container" id="puzzle-container"></div>
+    <p id="puzzle-message" class="text-pink-500 text-lg mb-6 fade-in hidden"></p>
 
     <!-- Botón con animación -->
     <button class="bg-pink-500 text-white py-2 px-4 rounded-lg hover:bg-pink-600 transition duration-300 fade-in">
@@ -58,6 +149,210 @@
   </div>
 
   <script>
+    // --- Juego de Memoria ---
+    const cardImages = [
+      'https://static.wikia.nocookie.net/mobile-legends/images/a/a4/Hero861-icon.png',
+      'https://static.wikia.nocookie.net/mobile-legends/images/2/20/Hero1121-icon.png',
+      'https://static.wikia.nocookie.net/mobile-legends/images/8/80/Hero1151-icon.png',
+      'https://static.wikia.nocookie.net/mobile-legends/images/e/ef/Hero251-icon.png',
+      'https://static.wikia.nocookie.net/mobile-legends/images/e/ef/Hero521-icon.png',
+      'https://static.wikia.nocookie.net/mobile-legends/images/a/a9/Hero461-icon.png',
+      'https://static.wikia.nocookie.net/mobile-legends/images/a/a4/Hero861-icon.png',
+      'https://static.wikia.nocookie.net/mobile-legends/images/2/20/Hero1121-icon.png',
+      'https://static.wikia.nocookie.net/mobile-legends/images/8/80/Hero1151-icon.png',
+      'https://static.wikia.nocookie.net/mobile-legends/images/e/ef/Hero251-icon.png',
+      'https://static.wikia.nocookie.net/mobile-legends/images/e/ef/Hero521-icon.png',
+      'https://static.wikia.nocookie.net/mobile-legends/images/a/a9/Hero461-icon.png'
+    ];
+
+    cardImages.sort(() => Math.random() - 0.5);
+
+    const memoryGame = document.getElementById('memory-game');
+    cardImages.forEach((image, index) => {
+      const card = document.createElement('div');
+      card.classList.add('memory-card');
+      card.dataset.image = image;
+      card.innerHTML = `<img src="${image}" alt="Carta">`;
+      memoryGame.appendChild(card);
+    });
+
+    let flippedCards = [];
+    let matchedCards = [];
+    let attempts = 0;
+
+    document.querySelectorAll('.memory-card').forEach(card => {
+      card.clickHandler = () => {
+        if (flippedCards.length < 2 && !card.classList.contains('flipped')) {
+          card.classList.add('flipped');
+          flippedCards.push(card);
+
+          if (flippedCards.length === 2) {
+            setTimeout(checkMatch, 1000);
+          }
+        }
+      };
+      card.addEventListener('click', card.clickHandler);
+    });
+
+    function checkMatch() {
+      const [card1, card2] = flippedCards;
+      if (card1.dataset.image === card2.dataset.image) {
+        card1.classList.add('matched');
+        card2.classList.add('matched');
+        matchedCards.push(card1, card2);
+      } else {
+        card1.classList.remove('flipped');
+        card2.classList.remove('flipped');
+      }
+      flippedCards = [];
+      attempts++;
+
+      if (matchedCards.length === cardImages.length) {
+        document.getElementById('game-message').textContent = "Se ganó el VIP 💖";
+        document.getElementById('game-message').classList.remove('hidden');
+        disableMemoryCards();
+      } else if (attempts >= 12) {
+        document.getElementById('game-message').textContent = "Igual de manca que en ML, jsjsjs :3";
+        document.getElementById('game-message').classList.remove('hidden');
+        disableMemoryCards();
+      }
+    }
+
+    function disableMemoryCards() {
+      document.querySelectorAll('.memory-card').forEach(card => {
+        card.removeEventListener('click', card.clickHandler);
+      });
+    }
+
+    // --- Juego de Rompecabezas Deslizante ---
+    const puzzleContainer = document.getElementById('puzzle-container');
+    const startPuzzleButton = document.getElementById('start-puzzle');
+    const puzzleMessage = document.getElementById('puzzle-message');
+    const puzzleImage = './b.jpg';
+    const puzzleSize = 3; // 3x3
+    let tiles = [];
+    let emptyTile = { row: puzzleSize - 1, col: puzzleSize - 1 };
+
+    startPuzzleButton.addEventListener('click', initPuzzle);
+
+    function initPuzzle() {
+      puzzleContainer.innerHTML = '';
+      tiles = [];
+      puzzleMessage.classList.add('hidden');
+      startPuzzleButton.disabled = true;
+
+      for (let row = 0; row < puzzleSize; row++) {
+        for (let col = 0; col < puzzleSize; col++) {
+          if (row === puzzleSize - 1 && col === puzzleSize - 1) continue; // Espacio vacío
+          const tile = document.createElement('div');
+          tile.classList.add('puzzle-tile');
+          tile.dataset.targetRow = row;
+          tile.dataset.targetCol = col;
+          tile.style.backgroundImage = `url(${puzzleImage})`;
+          tile.style.backgroundPosition = `-${col * 100}px -${row * 100}px`;
+          tile.style.left = `${col * 100}px`;
+          tile.style.top = `${row * 100}px`;
+          tile.addEventListener('click', () => moveTile(tile));
+          puzzleContainer.appendChild(tile);
+          tiles.push(tile);
+        }
+      }
+
+      // Mezclar las piezas
+      for (let i = 0; i < 100; i++) {
+        const neighbors = getNeighbors(emptyTile.row, emptyTile.col);
+        const randomNeighbor = neighbors[Math.floor(Math.random() * neighbors.length)];
+        swapTile(randomNeighbor.row, randomNeighbor.col);
+      }
+
+      // Verificar posiciones después de mezclar
+      updateTileBorders();
+    }
+
+    function moveTile(tile) {
+      const currentRow = parseInt(tile.style.top) / 100;
+      const currentCol = parseInt(tile.style.left) / 100;
+      if (isAdjacent(currentRow, currentCol, emptyTile.row, emptyTile.col)) {
+        swapTile(currentRow, currentCol);
+        updateTileBorders();
+        if (checkWin()) {
+          completePuzzle();
+          puzzleMessage.textContent = '¡Ya era hora! 💖✨';
+          puzzleMessage.classList.remove('hidden');
+          startPuzzleButton.disabled = false;
+        }
+      }
+    }
+
+    function updateTileBorders() {
+      tiles.forEach(tile => {
+        const targetRow = parseInt(tile.dataset.targetRow);
+        const targetCol = parseInt(tile.dataset.targetCol);
+        const currentRow = parseInt(tile.style.top) / 100;
+        const currentCol = parseInt(tile.style.left) / 100;
+        tile.classList.remove('correct', 'incorrect', 'complete');
+        if (targetRow === currentRow && targetCol === currentCol) {
+          tile.classList.add('correct');
+        } else {
+          tile.classList.add('incorrect');
+        }
+      });
+    }
+
+    function completePuzzle() {
+      // Eliminar bordes de todas las piezas
+      tiles.forEach(tile => {
+        tile.classList.remove('correct', 'incorrect');
+        tile.classList.add('complete');
+      });
+
+      // Crear y añadir la pieza faltante
+      const missingTile = document.createElement('div');
+      missingTile.classList.add('puzzle-tile', 'complete');
+      missingTile.style.backgroundImage = `url(${puzzleImage})`;
+      missingTile.style.backgroundPosition = `-${(puzzleSize - 1) * 100}px -${(puzzleSize - 1) * 100}px`;
+      missingTile.style.left = `${(puzzleSize - 1) * 100}px`;
+      missingTile.style.top = `${(puzzleSize - 1) * 100}px`;
+      puzzleContainer.appendChild(missingTile);
+
+      // Desactivar clics en las piezas
+      tiles.forEach(tile => tile.removeEventListener('click', moveTile));
+    }
+
+    function isAdjacent(row1, col1, row2, col2) {
+      return (Math.abs(row1 - row2) === 1 && col1 === col2) || (Math.abs(col1 - col2) === 1 && row1 === row2);
+    }
+
+    function getNeighbors(row, col) {
+      const neighbors = [];
+      if (row > 0) neighbors.push({ row: row - 1, col });
+      if (row < puzzleSize - 1) neighbors.push({ row: row + 1, col });
+      if (col > 0) neighbors.push({ row, col: col - 1 });
+      if (col < puzzleSize - 1) neighbors.push({ row, col: col + 1 });
+      return neighbors;
+    }
+
+    function swapTile(row, col) {
+      const tile = tiles.find(t => parseInt(t.style.top) / 100 === row && parseInt(t.style.left) / 100 === col);
+      if (!tile) return;
+      const tempTop = tile.style.top;
+      const tempLeft = tile.style.left;
+      tile.style.top = `${emptyTile.row * 100}px`;
+      tile.style.left = `${emptyTile.col * 100}px`;
+      emptyTile.row = parseInt(tempTop) / 100;
+      emptyTile.col = parseInt(tempLeft) / 100;
+    }
+
+    function checkWin() {
+      return tiles.every(tile => {
+        const targetRow = parseInt(tile.dataset.targetRow);
+        const targetCol = parseInt(tile.dataset.targetCol);
+        const currentRow = parseInt(tile.style.top) / 100;
+        const currentCol = parseInt(tile.style.left) / 100;
+        return targetRow === currentRow && targetCol === currentCol;
+      });
+    }
+
     // Agregar clase de animación a los elementos al cargar la página
     document.querySelectorAll('.fade-in').forEach((el, index) => {
       el.style.animationDelay = `${index * 0.3}s`;
